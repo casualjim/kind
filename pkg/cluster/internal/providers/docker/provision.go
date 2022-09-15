@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"net"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
@@ -203,6 +204,7 @@ func commonArgs(cluster string, cfg *config.Cluster, networkName string, nodeNam
 }
 
 func runArgsForNode(node *config.Node, clusterIPFamily config.ClusterIPFamily, name string, args []string) ([]string, error) {
+
 	args = append([]string{
 		"--hostname", name, // make hostname match container name
 		// label the node with the role ID
@@ -231,6 +233,11 @@ func runArgsForNode(node *config.Node, clusterIPFamily config.ClusterIPFamily, n
 	},
 		args...,
 	)
+
+	if runtime.GOOS == "linux" {
+		args = append(args,
+			"--add-host", "host.docker.internal:host-gateway")
+	}
 
 	// convert mounts and port mappings to container run args
 	args = append(args, generateMountBindings(node.ExtraMounts...)...)
